@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import urllib.request
+import requests
 import time
 import codecs
 import sys
@@ -7,33 +7,62 @@ import json
 import xmltodict
 import xml.etree.ElementTree as ET
 import mysql.connector
+import datetime
 from bs4 import BeautifulSoup
+
+collected_data_object = {}
 
 def scrape_charts(date):
     print("https://spotifycharts.com/regional/jp/daily/" + date)
     headers = {
         "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0",
         }
-    req = urllib.request.Request(url="https://spotifycharts.com/regional/jp/daily/" + date, headers=headers)
-    html = urllib.request.urlopen(req)
-    soup = BeautifulSoup(html, features="html.parser")
+    req = requests.get(url="https://spotifycharts.com/regional/jp/daily/" + date, headers=headers)
+    # html = urllib.request.urlopen(req)
+    soup = BeautifulSoup(req.content, features="html.parser")
     popular_town_array = []
 
     chart_table_body = soup.find('table', {'class' :'chart-table'}).find('tbody')
     tr_list = chart_table_body.find_all('tr')
+
+    rank = 1
     for tr in tr_list:
         track = tr.find('td', {'class' :'chart-table-track'})
         streams = tr.find('td', {'class' :'chart-table-streams'})
 
         track_text = track.find('strong').text.replace('\u2013', '')
         artist_text = track.find('span').text.replace('\u2013', '').replace('by ', '')
-        print(track_text + '-' + artist_text)
+        # print(track_text + '-' + artist_text)
+
+        track_object = {}
+
+        track_object["title"] = track_text
+        track_object["rank"] = rank
+        track_object["date"] = date
+
+        if artist_text not in collected_data_object:
+            collected_data_object[artist_text] = {}
+
+        if track_text not in collected_data_object[artist_text]:
+            collected_data_object[artist_text][track_text] = []
+
+        collected_data_object[artist_text][track_text].append(track_object)
 
         stream_text = streams.text
         print(stream_text)
-
-    return popular_town_array
+        rank = rank + 1
+    return
 
 if __name__ == '__main__':
-    date = sys.argv[1]
-    scrape_charts(date)
+    # date = sys.argv[1]
+    date_string_list = []
+
+    base = datetime.datetime(2018, 12, 31)
+    numdays = 5
+    date_string_list = [(base - datetime.timedelta(days=x)).strftime("%Y-%m-%d") for x in range(0, numdays)]
+    date_string_list.reverse()
+
+    for date in date_string_list:
+        scrape_charts(date)
+
+    print(collected_data_object["Aimyon"])
