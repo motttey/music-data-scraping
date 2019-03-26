@@ -8,6 +8,12 @@ import xmltodict
 import xml.etree.ElementTree as ET
 import mysql.connector
 import datetime
+
+import matplotlib.pyplot  as plt
+from matplotlib.font_manager import FontProperties
+import seaborn as sns
+import pandas as pd
+
 from bs4 import BeautifulSoup
 
 collected_data_object = {}
@@ -58,11 +64,23 @@ if __name__ == '__main__':
     date_string_list = []
 
     base = datetime.datetime(2018, 12, 31)
-    numdays = 5
+    numdays = 180
     date_string_list = [(base - datetime.timedelta(days=x)).strftime("%Y-%m-%d") for x in range(0, numdays)]
     date_string_list.reverse()
 
     for date in date_string_list:
         scrape_charts(date)
 
-    print(collected_data_object["Aimyon"])
+    for track in collected_data_object["Aimyon"]:
+        df = pd.DataFrame.from_dict(collected_data_object["Aimyon"][track])
+        # df = df.set_index("date")
+        # print(df)
+        plt.plot(pd.to_datetime(df["date"]), df["rank"], label=track)
+
+    plt.ylim(200, 0)
+
+    fp = FontProperties(fname=r'C:\Windows\Fonts\yuminl.ttf', size=10)
+    plt.legend(prop=fp)
+
+    plt.show()
+    # print(collected_data_object["Aimyon"])
