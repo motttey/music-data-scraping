@@ -21,7 +21,7 @@ collected_data_object = {}
 def scrape_charts(date):
     print("https://spotifycharts.com/regional/jp/daily/" + date)
     headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0",
+            "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0",
         }
     req = requests.get(url="https://spotifycharts.com/regional/jp/daily/" + date, headers=headers)
     # html = urllib.request.urlopen(req)
@@ -64,23 +64,30 @@ if __name__ == '__main__':
     date_string_list = []
 
     base = datetime.datetime(2018, 12, 31)
-    numdays = 180
+    numdays = 100
     date_string_list = [(base - datetime.timedelta(days=x)).strftime("%Y-%m-%d") for x in range(0, numdays)]
     date_string_list.reverse()
 
     for date in date_string_list:
         scrape_charts(date)
 
-    for track in collected_data_object["Aimyon"]:
-        df = pd.DataFrame.from_dict(collected_data_object["Aimyon"][track])
-        # df = df.set_index("date")
-        # print(df)
-        plt.plot(pd.to_datetime(df["date"]), df["rank"], label=track)
-
-    plt.ylim(200, 0)
-
+    selected_artists = {}
+    for artist in collected_data_object:
+        if len(collected_data_object[artist].items()) > 10:
+            selected_artists[artist] = collected_data_object[artist]
+    # collected_data_object = sorted(collected_data_object)
+    print(selected_artists)
     fp = FontProperties(fname=r'C:\Windows\Fonts\yuminl.ttf', size=10)
-    plt.legend(prop=fp)
 
-    plt.show()
-    # print(collected_data_object["Aimyon"])
+    for selected_artist in selected_artists:
+        for track in selected_artists[selected_artist]:
+            df = pd.DataFrame.from_dict(selected_artists[selected_artist][track])
+            # df = df.set_index("date")
+            # print(df)
+            plt.plot(pd.to_datetime(df["date"]), df["rank"], label=track)
+
+        plt.title(selected_artist, fontproperties=fp)
+        plt.ylim(200, 0)
+        plt.legend(prop=fp)
+
+        plt.show()
