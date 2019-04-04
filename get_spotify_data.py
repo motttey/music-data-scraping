@@ -73,21 +73,20 @@ if __name__ == '__main__':
 
     selected_artists = {}
     for artist in collected_data_object:
-        if len(collected_data_object[artist].items()) > 10:
+        if len(collected_data_object[artist].items()) > 8:
             selected_artists[artist] = collected_data_object[artist]
-    # collected_data_object = sorted(collected_data_object)
+
     print(selected_artists)
     fp = FontProperties(fname=r'C:\Windows\Fonts\yuminl.ttf', size=10)
 
     for selected_artist in selected_artists:
         for track in selected_artists[selected_artist]:
             df = pd.DataFrame.from_dict(selected_artists[selected_artist][track])
-            # df = df.set_index("date")
-            # print(df)
             plt.plot(pd.to_datetime(df["date"]), df["rank"], label=track)
 
         plt.title(selected_artist, fontproperties=fp)
         plt.ylim(200, 0)
-        plt.legend(prop=fp)
+        plt.legend(prop=fp, bbox_to_anchor=(1, 0), loc='lower right')
 
-        plt.show()
+        # plt.show()
+        plt.savefig(selected_artist + '.png')
